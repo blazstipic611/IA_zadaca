@@ -1,99 +1,104 @@
-turtles-own [ samples1 samples2 ]
+globals [ lists-list lists1-list1 ]
+
+breed [ persons person ]
+breed [ persons1 person1 ]
+
 
 to setup
   clear-all
-  clear-output
-  create-turtles 2
-  [
-    set samples1 []
-    set samples2 []
-  ]                      ;; kreiraju se 2 rovera
-
-  ask turtle 0
-  [
-    set color brown
-    setxy -8 -6          ;; prvi rover se postavlja u donju lijevu celiju
-    set heading 90       ;; i okrece udesno
-  ]
-
-  ask turtle 1
-  [
-    set color green
-    setxy 8 6            ;; drugi rover se postavlja u gornju desnu celiju
-    set heading 270      ;; i okrece ulijevo
-  ]
-
-  ;; postavljanje "stijena" u okruženju
-  ask n-of 1 patches [ set pcolor red ]
-
   reset-ticks
+  clear-output
+  agent-setup
+  set lists-list []
+  set lists1-list1 []
 end
+
 
 to go
-  if ([xcor] of turtle 0 = 8) and ([ycor] of turtle 0 = 6)
-  [ stop ]
-  if (length [samples1] of turtle 0 = 1) or (length [samples2] of turtle 1 = 1)
-  [
-    ;; odredjuje se "pobjednik" natjecanja
-    ifelse (length [samples1] of turtle 0 = 1)
-    [ ask turtle 0 [win]
-      ask turtle 1 [lose] ]
-    [ ask turtle 1 [win]
-      ask turtle 0 [lose] ]
-    stop ]
-  ask turtle 0 [ walk1 ]            ;; pokrece se funkcija walk1 za prvi rover
-  ask turtle 1 [ walk2 ]            ;; pokrece se funkcija walk2 za drugi rover
   tick
+  go-pickup
+  go-pickup1
+  if (length lists1-list1 >= 10) or (length lists-list >= 10) [
+          stop
+        ]new-dirt
+
 end
 
-to walk1  ;; funkcija prvog rovera
 
-  if ([pcolor] of patch-here = red)
+to agent-setup
+  create-persons 1
   [
-    if not (member? "Red" samples1 )
-    [
-      set samples1 lput "Red" samples1
-      show samples1
+    setxy -8 -6
+    set shape "person"
+    set color green
+  ]
+  create-persons1 1
+  [
+    setxy 8 6
+    set shape "person"
+    set color blue
+
+  ]
+end
+
+to go-pickup
+  ask persons [
+    if (count patches with [ pcolor = grey ] != 0 ) [
+      face min-one-of patches with [ pcolor = grey ] [ distance myself ]
+      forward 1
+      if ([pcolor] of patch-here = gray) [
+        set pcolor black
+        set lists-list lput patch-here lists-list
+        show lists-list
+
+      ]
     ]
   ]
- let najblizi min-one-of patches with [pcolor = red] [distance myself]
-  face najblizi
-  forward 1
-
 end
 
-to walk2  ;; funkcija drugog rovera
+to go-pickup1
+  ask persons1 [
+    ifelse (count patches with [ pcolor = grey ] != 0 ) [
+      face min-one-of patches with [ pcolor = grey ] [ distance myself ]
+      forward 1
+      if ([pcolor] of patch-here = gray) [
+        set pcolor black
+        set lists1-list1 lput patch-here lists1-list1
+        show lists1-list1
 
-  if ([pcolor] of patch-here = red)
-  [
-    if not (member? "Red" samples2 )
-    [
-      set samples2 lput "Red" samples2
-      show samples2
+      ]
+    ][
+
+      rt random 360
+      fd 1
+
     ]
   ]
-  let najblizi min-one-of patches with [pcolor = red] [distance myself]
-  face najblizi
-  forward 1
-
 end
 
-to win
-  show ":-)"
-end
 
-to lose
-  show ":-("
+to new-dirt
+
+  if random 100 > 89
+  [
+    ;samo ovo izbrsi i vidjet ces kako se on krece random jer nema hrane
+    ask n-of 1 patches
+    [
+      set pcolor grey
+    ]
+
+
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-728
-409
+673
+370
 -1
 -1
-30.0
+13.0
 1
 10
 1
@@ -103,10 +108,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--8
-8
--6
-6
+-17
+17
+-13
+13
 0
 0
 1
@@ -114,10 +119,10 @@ ticks
 30.0
 
 BUTTON
-25
-74
-88
-107
+28
+36
+91
+69
 setup
 setup
 NIL
@@ -131,10 +136,10 @@ NIL
 1
 
 BUTTON
-99
-74
-162
-107
+28
+88
+91
+121
 go
 go
 T
@@ -148,12 +153,41 @@ NIL
 1
 
 @#$#@#$#@
-## OPIS PRIMJERA
-I u ovom primjeru opisan je rad dva agenta koji upravljaju roverima na Marsu, s identičnim zadatkom kao i u prethodnim primjerima. U ovoj simulaciji roveri se nadmeću koji od njih će prije prikupiti uzorke svih stijena koje se nalaze u okruženju.  
+## WHAT IS IT?
 
-## VRSTA INTERAKCIJE
-Ovo je situacija u kojoj agenti imaju nekompatibilne ciljeve, a pri tome su dovoljno sposobni za ostvarivanje tih ciljeva i postoji dovoljno resursa u okruženju za sve agente.
-Ovaj tip interakcije je čisto pojedinačno natjecanje. Nekompatibilnost ciljeva pojedinih agenata implicira da ostvarivanje jednog cilja istovremeno uzrokuje otežano, ili čak onemogućeno, ostvarivanje ciljeva drugih agenata.
+(a general understanding of what the model is trying to show or explain)
+
+## HOW IT WORKS
+
+(what rules the agents use to create the overall behavior of the model)
+
+## HOW TO USE IT
+
+(how to use the model, including a description of each of the items in the Interface tab)
+
+## THINGS TO NOTICE
+
+(suggested things for the user to notice while running the model)
+
+## THINGS TO TRY
+
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+
+## EXTENDING THE MODEL
+
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+
+## NETLOGO FEATURES
+
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+
+## RELATED MODELS
+
+(models in the NetLogo Models Library and elsewhere which are of related interest)
+
+## CREDITS AND REFERENCES
+
+(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true

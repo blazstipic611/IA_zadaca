@@ -1,148 +1,140 @@
-globals [samples1 target-coordinates-list counter boja y]
+globals [ persons-patch persons1-patch persons-counter persons1-counter persons-go persons1-go]
+breed [ persons person]
+breed [ persons1 person1]
+turtles-own [ counter ]
 
 to setup
   clear-all
-  clear-output
-  create-turtles 2
-  [
-    set samples1 []
-  ]
-  ask turtle 0
-  [
-    set color brown
-    setxy -8 -6
-    set heading 90
-  ]
-
-  ask turtle 1
-  [
-    set color green
-    setxy 8 6
-    set heading 270
-  ]
-
-  ;; postavljanje "stijena" u okružanju
-  ask n-of 5 patches [ set pcolor orange ]
-  ask n-of 5 patches [ set pcolor red ]
-  ask n-of 5 patches [ set pcolor blue ]
   reset-ticks
-
-  set counter 0
-  set target-coordinates-list []
+  create-persons 2[
+    set shape "person"
+    set color blue
+    setxy random-pxcor random-pycor
+    set persons-counter 0
+  ]
+  create-persons1 2[
+    set shape "person"
+    set color red
+    setxy random-pxcor random-pycor
+    set persons1-counter 0
+  ]
+  set persons-go false
+  set persons1-go false
 end
 
 to go
-  if ([xcor] of turtle 0 = 8) and ([ycor] of turtle 0 = 6) [
+  if persons-counter = 10 [
+    show "persons win"
     stop
   ]
-  ask turtle 0 [walk1]
-
+  if persons1-counter = 10 [
+    show "persons1 win"
+    stop
+  ]
+  let random-number random 100 + 1
+  if (random-number <= 10)[
+    ask one-of patches [
+      set pcolor brown
+    ]
+  ]
+  tim1
+  tim1.2
+  tim2
+  tim2.2
   tick
 end
 
-to walk1
-  if ([pcolor] of patch-here = orange) [
-    if not (member? "Orange" samples1 ) [
-      set samples1 lput "Orange" samples1
-
-      let target-patch patch-ahead 1
-      let target-coordinates list [pxcor] of target-patch [pycor] of target-patch
-      set target-coordinates-list lput target-coordinates target-coordinates-list
-      set counter counter + 1
-    ]
-  ]
-
-  if ([pcolor] of patch-here = blue) [
-    if not (member? "Blue" samples1 ) [
-      set samples1 lput "Blue" samples1
-
-      let target-patch patch-ahead 1
-      let target-coordinates list [pxcor] of target-patch [pycor] of target-patch
-      set target-coordinates-list lput target-coordinates target-coordinates-list
-      set counter counter + 1
-    ]
-  ]
-
-  if ([pcolor] of patch-here = red) [
-    if not (member? "Red" samples1 ) [
-      set samples1 lput "Red" samples1
-
-      let target-patch patch-ahead 1
-      let target-coordinates list [pxcor] of target-patch [pycor] of target-patch
-      set target-coordinates-list lput target-coordinates target-coordinates-list
-      set counter counter + 1
-    ]
-  ]
-
-  ifelse (xcor = 8) and (heading = 90) [
-    ifelse (ycor = 8) [
-      show "Done"
-    ] [
-      set heading 0
-      fd 1
-      set heading 270
-    ]
-  ] [
-    ifelse (xcor = -8) and (heading = 270) [
-      set heading 0
-      fd 1
-      set heading 90
-    ] [
-      if counter = 3 [
-        ask turtle 1 [walk2]
-        stop
+to tim1
+  ask turtle 2[
+    ifelse any? patches with [pcolor = brown][
+      if persons1-go = false[
+       set persons1-patch min-one-of patches with [pcolor = brown and not any? turtles-here] [distance myself]
+        if persons1-patch != nobody[
+          face persons1-patch
+          fd 1
+        ]
       ]
+      if pcolor = brown [
+        set persons1-go true
+      ]
+    ]
+    [
+      set heading random 360
       fd 1
     ]
   ]
 end
 
-to walk2
-  if not empty? target-coordinates-list [
-    let target-proba first target-coordinates-list
-    let target-x item 0 target-proba
-    let target-y item 1 target-proba
-    let heading-patch patch target-x target-y
-    face heading-patch
-
-    ifelse (pxcor = target-x) and (pycor = target-y) [
-      set target-coordinates-list but-first target-coordinates-list
-    ] [
-      while [(pxcor != target-x) or (pycor != target-y)] [
-        let next-patch min-one-of neighbors4 [distance heading-patch]
-        face next-patch
+to tim1.2
+  if persons1-go = true[
+    ask turtle 3[
+      if persons1-patch != nobody[
+        face persons1-patch
         fd 1
       ]
+      if pcolor != black [
+        set pcolor black
+        set persons1-counter persons1-counter + 1
+        set persons1-go false
+      ]
+    ]
+ ]
+end
+
+to tim2
+  ask turtle 0[
+    if any? patches with [pcolor = brown][
+      if persons-go = false[
+        set persons-patch min-one-of patches with [pcolor = brown and not any? turtles-here] [distance myself]
+        if persons-patch != nobody[
+          face persons-patch
+          fd 1
+        ]
+      ]
+      if pcolor = brown [
+        set persons-go true
+      ]
     ]
   ]
 end
 
-
-
-
-
+to tim2.2
+  if persons-go = true[
+    ask turtle 1[
+      if persons-patch != nobody[
+        face persons-patch
+        fd 1
+      ]
+      if pcolor != black [
+        set pcolor black
+        set persons-counter persons-counter + 1
+        set persons-go false
+      ]
+    ]
+ ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-728
-409
+647
+448
 -1
 -1
-30.0
+13.0
 1
 10
 1
 1
 1
 0
-0
-0
 1
--8
-8
--6
-6
+1
+1
+-16
+16
+-16
+16
 0
 0
 1
@@ -150,10 +142,10 @@ ticks
 30.0
 
 BUTTON
-25
-74
-88
-107
+92
+27
+155
+60
 setup
 setup
 NIL
@@ -167,10 +159,10 @@ NIL
 1
 
 BUTTON
-99
-74
-162
-107
+103
+93
+166
+126
 go
 go
 T
@@ -184,12 +176,41 @@ NIL
 1
 
 @#$#@#$#@
-## OPIS PRIMJERA
-U ovom primjeru je ponovno opisan rad agenata koji upravljaju roverima na Marsu, a svaki od njih ima zadatak prikupljanje uzoraka određenih stijena. Roveri se kreću unaprijed definiranim putanjama i ukoliko naiđu na stijenu odgovarajuće vrste, uzimaju njen uzorak.  
+## WHAT IS IT?
 
-## VRSTA INTERAKCIJE
-Ciljevi agenata su kompatibilni a količina raspoloživih resursa u okruženju je dovoljna za sve agente. Za razliku od prethodnog primjera, sposobnosti pojedinih agenata nisu dovoljne da pojedinačno ostvare svoj cilj. Mogu ga ostvariti samo suradnjom.
-Ovaj tip interakcije je jednostavna suradnja. Jednostavna suradnja sastoji se od jednostavnog zbrajanja vještina pojedinih agenata, bez zahtjeva za dodatnim aktivnostima koordinacije među uključenim agentima.
+(a general understanding of what the model is trying to show or explain)
+
+## HOW IT WORKS
+
+(what rules the agents use to create the overall behavior of the model)
+
+## HOW TO USE IT
+
+(how to use the model, including a description of each of the items in the Interface tab)
+
+## THINGS TO NOTICE
+
+(suggested things for the user to notice while running the model)
+
+## THINGS TO TRY
+
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+
+## EXTENDING THE MODEL
+
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+
+## NETLOGO FEATURES
+
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+
+## RELATED MODELS
+
+(models in the NetLogo Models Library and elsewhere which are of related interest)
+
+## CREDITS AND REFERENCES
+
+(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true

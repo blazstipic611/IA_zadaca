@@ -14,40 +14,40 @@ to setup
     set samples3 []
     set samples4 []
 
-  ]                      ;; kreiraju se 2 rovera
+  ]
 
   ask turtle 0
   [
     set shape "turtle"
     set color brown
-    setxy -8 -6          ;; prvi rover se postavlja u donju lijevu celiju
-    set heading 90       ;; i okrece udesno
+    setxy -8 -6
+    set heading 90
   ]
 
   ask turtle 1
   [
     set shape "car"
     set color green
-    setxy 8 6            ;; drugi rover se postavlja u gornju desnu celiju
-    set heading 270      ;; i okrece ulijevo
+    setxy 8 6
+    set heading 270
   ]
   ask turtle 2
   [
     set shape "turtle"
     set color brown
-    setxy -8 6            ;; treci rover koji je u grupi sa roverom 2
+    setxy -8 6
     set heading 180
   ]
   ask turtle 3
   [
     set shape "car"
     set color green
-    setxy 8 -6          ;; cetvrti rover koji je u grupi sa roverom 1
+    setxy 8 -6
     set heading 0
   ]
 
 
-  ;; postavljanje "stijena" u okruženju
+
   ask n-of 5 patches [ set pcolor orange ]
   ask n-of 5 patches [ set pcolor red ]
   ask n-of 5 patches [ set pcolor blue ]
@@ -79,14 +79,14 @@ to go
           [ stop ] ] ] ]
     stop
   ]
-  ask turtle 0 [ walk1 ]            ;; pokrece se funkcija walk1 za prvi rover
-  ask turtle 1 [ walk2 ]            ;; pokrece se funkcija walk2 za drugi rover
+  ask turtle 0 [ walk1 ]
+  ask turtle 1 [ walk2 ]
   ask turtle 2 [ walk3 ]
   ask turtle 3 [ walk4 ]
   tick
 end
 
-to walk1  ;; funkcija prvog rovera
+to walk1
   if ([pcolor] of patch-here = orange)
   [
     if not (member? "Orange" samples1 )
@@ -136,7 +136,7 @@ to walk1  ;; funkcija prvog rovera
   ]
 end
 
-to walk2  ;; funkcija drugog rovera
+to walk2
   if ([pcolor] of patch-here = orange)
   [
     if not (member? "Orange" samples2 )

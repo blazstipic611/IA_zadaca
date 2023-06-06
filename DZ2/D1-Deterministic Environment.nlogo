@@ -1,129 +1,67 @@
-globals [ new-products products badx bady history stop-flag]
-                         ;; globalne varijable za brojanje zapocetih i dovrsenih
-                         ;; proizvoda i za poziciju "odlaganja" neisprevnih proizvoda
-                         ;; lista povijesti opazanja i zastaviza za prekid proizvodnje
+globals [ dirt-count ]
+                         ;; globalna varijabla za brojanje "prljavih" celija okruzenja
 
 to setup
   clear-all              ;; briše sve postavke iz prethodnih pokušaja
-  set new-products 0         ;; postavlja broj dovrsenih proizvoda na 0
-  set products 0         ;; postavlja broj proizvoda na 0
-  set stop-flag FALSE    ;; postavlja se zastavica za prekid na FALSE
-  set badx 6
-  set bady 5             ;; postavlja koordinate za odlaganje neispravnog proizvoda
-  set history []         ;; kreira se prazna list opazanja
+  set dirt-count 0       ;; postavlja brojac "prljavih" celija na 0
 
-  ask patch 6 6
+  create-turtles 1       ;; kreira se jedan agent (usisivac)
   [
-    set pcolor green     ;; signalno svjetlo se postavlja na zelenu boju
+    set shape "bulldozer top"
   ]
 
-  draw-track             ;; crta se proizvodna traka
+  ask turtles
+  [
+    setxy -6 -6        ;; usisivac se postavlja u donju lijevu celiju
+    set color green    ;; boji u zeleno
+    set heading 90     ;; i okrece udesno
+  ]
+
+  ask n-of 15 patches  ;; postavlja se "prljavstina" na slucajnih 15 polja prostorije
+  [
+    set pcolor grey
+  ]
+
   reset-ticks
 end
 
 to go
-  ifelse not stop-flag
+  if (count patches with [pcolor = gray] = 0)
+                          ;; ako nema "prljavih" celija
+   [
+     show "Done!"         ;; ispisuje se poruka o zavrsenom ciscenju
+     stop                 ;; i zaustavlja se simulacija
+   ]
+  ask turtles
   [
-    ask turtles
-    [
-      walk               ;; pokrece se funkcija za pomicanje proizvoda po traci
-    ]
+    clean                ;; ukoliko usisivac nije u gornjoj desnoj celiji
+  ]                      ;; poziva se funkcija kretanja usisivaca
 
-    set history sort history
-                         ;; sortira se povijest opazanja kako bi 0 (neispravni proizvodi)
-                         ;; dosli na pocetak
-    check-history        ;; funkcija provjere povijesti opazanja
-
-    if (products = 30)
-                         ;; serija proizvoda sadrži 30 proizvoda
-    [
-      show "Success!"       ;; ukoliko je manje od 10% neispravnih serija je uspjela
-      stop
-    ]
-    tick
-  ]
-  [
-    stop
-  ]
+  tick
 end
 
-to walk                  ;; funkcija pomicanja proizvoda po traci
-  if ycor = -3           ;; ako je proizvod na traci
+to clean                 ;; funkcija kretanja usisivacavozila
+  if ([pcolor] of patch-here = grey)
+                         ;; ukoliko je naisao na prljavstinu
   [
-    ifelse xcor = 6      ;; ako je proizvod dosao do kraja trake
-    [
-      set products products + 1
-      ifelse color = red
-                         ;; neispravan proizvod se "odlaze"
-      [
-        set history lput 0 history
-                         ;; opazanje se dodaje u listu povijesti opazanja
-        setxy badx bady
-        ifelse bady = -1
-        [
-          set badx badx - 1
-          set bady 5
-        ]
-        [
-          set bady bady - 1
-        ]
-      ]
-      [
-        set history lput 1 history
-                         ;; opazanje se dodaje u listu povijesti opazanja
-        die              ;; ispravan proizvod se uklanja sa ekrana
-      ]
-    ]
-    [
-      fd 1               ;; ako proizvod nije na kraju trake pomice se
-    ]
-  ]
-end
-
-to new-product
-
-  ifelse new-products < 30
-  [
-     create-turtles 1       ;; kreira se jedan agent (proizvod)
-  [
-    set color one-of remove gray base-colors
-                         ;; daje mu se neka od osnovnih boja osim sive
-    set new-products new-products + 1
-                         ;; broji se zapoceti proizvod
-    type "New product No. " type new-products print ""
-    set shape "crate"    ;; daje mu se oblik sanduka
-    setxy -6 -3          ;; postavlja na pocetak trake
-    set heading 90       ;; i okrece udesno
-
-
+    set dirt-count dirt-count + 1
+    type "Dirt: " type dirt-count print""
+                         ;; ispisuje se poruku
+    wait 0.3        ;; usisivac daje zvucni signal i čeka 0.3 sekunde
+    set pcolor black     ;; te cisti celiju prostorije (mijenja joj boju u crnu)
   ]
 
-  ][
-    stop
+  ifelse (any? patches with [pcolor = gray])
+[
+  let najblizi min-one-of patches with [pcolor = gray] [distance myself]
+  face najblizi
+  forward 1
+]
+[
+  ; nestoo
+]
 
-  ]
 
-end
-
-to draw-track
-  ask patches at-points [[-6 -3] [-5 -3] [-4 -3] [-3 -3] [-2 -3] [-1 -3] [0 -3] [1 -3] [2 -3] [3 -3] [4 -3] [5 -3] [6 -3]] [ set pcolor grey ]
-end
-
-to check-history
-  if length history > 2   ;; ako je u listi barem tri opazanja
-  [
-    if (item 2 history = 0)
-                          ;; ako je trece (indeks 2) opazanje u sortiranoj listi 0,
-                          ;; tj. neispravan proizvod
-    [
-      ask patch 6 6
-      [
-        set pcolor red    ;; signalno svjetlo se postavlja na crvenu boju
-      ]
-      show "Fail"         ;; ukoliko je 10% i vise neispravnih serija nije uspjela
-      set stop-flag TRUE  ;; postavlja se zastavica zaustavljanja na TRUE
-    ]
-  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -140,8 +78,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -6
 6
@@ -151,14 +89,14 @@ GRAPHICS-WINDOW
 0
 1
 ticks
-10.0
+30.0
 
 BUTTON
-15
-59
-78
-92
-setup
+27
+22
+90
+55
+Setup
 setup
 NIL
 1
@@ -171,11 +109,11 @@ NIL
 1
 
 BUTTON
-88
-60
-151
-93
-NIL
+132
+29
+195
+62
+go
 go
 T
 1
@@ -187,41 +125,42 @@ NIL
 NIL
 1
 
-BUTTON
-36
-105
-137
-138
-new product
-new-product
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 @#$#@#$#@
-## OPIS MODELA
+## WHAT IS IT?
 
-Primjer simulira rad agenta koji nadgleda proizvodnu traku i proizvode na njoj. 
+(a general understanding of what the model is trying to show or explain)
 
-Pritiskom na tipku *new product* na traci se pojavljuje novi proizvod.
+## HOW IT WORKS
 
-Agent registira neispravne proizvode (obojene crvenom bojom) i ispraven proizvode (obojene nekom drugom bojom) kada dođu do kraja proizvodne trake. Ispravni proizvodi se uklanjaju sa ekrana, a neispravni zadržavaju na ekranu.
+(what rules the agents use to create the overall behavior of the model)
 
-Seriju proizvoda čini 30 proizvoda i ako je manje od 10% proizvoda neispravno serija se smatra uspješnom, a ako je 10% ili više neispravnih proizvoda serija se smatra. neuspješnom.   
+## HOW TO USE IT
 
-## VRSTA OKRUŽENJA
-Po kriteriju **epizodičnosti** ovo okruženje je **sekvencijalno** jer buduće odluke agenta ovise o akcijama koje je agent prethodno poduzeo, odnosno trenutna akcija ima dugoročne posljedice.
+(how to use the model, including a description of each of the items in the Interface tab)
 
-U ovom primjeru zaustavlja se proizvodnja u trenutku kad je serija označena kao neispravna (10% neispravnih proizvoda).  
+## THINGS TO NOTICE
 
-## KAKO KORISTITI MODEL
-Potrebno je podesiti brzinu izmjene otkucaja (klizač *ticks* iznad prozora simulacije) kako bi se mogla pratiti simulacija.
+(suggested things for the user to notice while running the model)
+
+## THINGS TO TRY
+
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+
+## EXTENDING THE MODEL
+
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+
+## NETLOGO FEATURES
+
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+
+## RELATED MODELS
+
+(models in the NetLogo Models Library and elsewhere which are of related interest)
+
+## CREDITS AND REFERENCES
+
+(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true
@@ -256,6 +195,38 @@ Circle -7500403 true true 110 127 80
 Circle -7500403 true true 110 75 80
 Line -7500403 true 150 100 80 30
 Line -7500403 true 150 100 220 30
+
+bulldozer top
+true
+0
+Rectangle -7500403 true true 195 60 255 255
+Rectangle -16777216 false false 195 60 255 255
+Rectangle -7500403 true true 45 60 105 255
+Rectangle -16777216 false false 45 60 105 255
+Line -16777216 false 45 75 255 75
+Line -16777216 false 45 105 255 105
+Line -16777216 false 45 60 255 60
+Line -16777216 false 45 240 255 240
+Line -16777216 false 45 225 255 225
+Line -16777216 false 45 195 255 195
+Line -16777216 false 45 150 255 150
+Polygon -13345367 true false 90 60 75 90 75 240 120 255 180 255 225 240 225 90 210 60
+Polygon -16777216 false false 225 90 210 60 211 246 225 240
+Polygon -16777216 false false 75 90 90 60 89 246 75 240
+Polygon -16777216 false false 89 247 116 254 183 255 211 246 211 211 90 210
+Rectangle -16777216 false false 90 60 210 90
+Rectangle -13345367 true false 180 30 195 90
+Rectangle -16777216 false false 105 30 120 90
+Rectangle -13345367 true false 105 45 120 90
+Rectangle -16777216 false false 180 60 180 90
+Polygon -16777216 true false 195 105 180 120 120 120 105 105
+Polygon -16777216 true false 105 199 120 188 180 188 195 199
+Polygon -16777216 true false 195 120 180 135 180 180 195 195
+Polygon -16777216 true false 105 120 120 135 120 180 105 195
+Line -1184463 false 105 165 195 165
+Circle -16777216 true false 113 226 14
+Polygon -13345367 true false 105 15 60 30 60 45 240 45 240 30 195 15
+Polygon -13345367 false false 105 30 60 45 45 90 255 90 255 45 210 15
 
 butterfly
 true
@@ -296,20 +267,6 @@ false
 Polygon -7500403 true true 200 193 197 249 179 249 177 196 166 187 140 189 93 191 78 179 72 211 49 209 48 181 37 149 25 120 25 89 45 72 103 84 179 75 198 76 252 64 272 81 293 103 285 121 255 121 242 118 224 167
 Polygon -7500403 true true 73 210 86 251 62 249 48 208
 Polygon -7500403 true true 25 114 16 195 9 204 23 213 25 200 39 123
-
-crate
-false
-0
-Rectangle -7500403 true true 45 45 255 255
-Rectangle -16777216 false false 45 45 255 255
-Rectangle -16777216 false false 60 60 240 240
-Line -16777216 false 180 60 180 240
-Line -16777216 false 150 60 150 240
-Line -16777216 false 120 60 120 240
-Line -16777216 false 210 60 210 240
-Line -16777216 false 90 60 90 240
-Polygon -7500403 true true 75 240 240 75 240 60 225 60 60 225 60 240
-Polygon -16777216 false false 60 225 60 240 75 240 240 75 240 60 225 60
 
 cylinder
 false
@@ -515,13 +472,6 @@ Polygon -10899396 true false 105 90 75 75 55 75 40 89 31 108 39 124 60 105 75 10
 Polygon -10899396 true false 132 85 134 64 107 51 108 17 150 2 192 18 192 52 169 65 172 87
 Polygon -10899396 true false 85 204 60 233 54 254 72 266 85 252 107 210
 Polygon -7500403 true true 119 75 179 75 209 101 224 135 220 225 175 261 128 261 81 224 74 135 88 99
-
-vacuum
-true
-0
-Polygon -7500403 true true 30 135 150 135 240 135 255 225 240 225 210 225 210 195 210 225 135 225 135 225 135 225 135 225 90 225 90 195 60 195 60 225 15 225 30 135
-Circle -13345367 true false 45 180 60
-Circle -13345367 true false 165 180 60
 
 wheel
 false
